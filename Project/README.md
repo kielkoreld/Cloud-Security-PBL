@@ -60,10 +60,7 @@ python3 Project/run_eval.py
 15개 시나리오(제공 스크립트 4개 + 추가 시나리오)를 순서를 섞어 실행하고,
 Falco 로그로 판단한 뒤 오탐·미탐을 집계합니다.
 
-결과는 다음에 저장됩니다.
-
-- `Project/results/결과.md`
-- `Project/results/summary.json`
+결과는 `Project/results/결과.md`에 저장됩니다.
 
 ## 참고
 
