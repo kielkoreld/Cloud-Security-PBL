@@ -344,10 +344,35 @@ def write_report(rows: list[dict]) -> None:
     (RESULTS / "결과.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def main() -> int:
+def parse_seed(argv: list[str]) -> int:
+    """기본 시드는 21. `--21`, `--7`처럼 숫자 플래그로 바꾼다."""
+    seed = 21
+    for arg in argv:
+        if arg in ("-h", "--help"):
+            print(
+                "usage: python3 Project/run_eval.py [--SEED]\n"
+                f"  기본 시드: {seed}\n"
+                "  예: python3 Project/run_eval.py --21\n"
+                "      python3 Project/run_eval.py --7"
+            )
+            raise SystemExit(0)
+        if arg.startswith("--") and arg[2:].isdigit():
+            seed = int(arg[2:])
+        elif arg.startswith("-") and not arg.startswith("--") and arg[1:].isdigit():
+            seed = int(arg[1:])
+        else:
+            print(f"unknown argument: {arg}", file=sys.stderr)
+            print("use --help", file=sys.stderr)
+            raise SystemExit(2)
+    return seed
+
+
+def main(argv: list[str] | None = None) -> int:
+    seed = parse_seed(sys.argv[1:] if argv is None else argv)
     RESULTS.mkdir(parents=True, exist_ok=True)
     order = SCENARIOS[:]
-    random.Random(21).shuffle(order)
+    random.Random(seed).shuffle(order)
+    print("seed", seed)
     print("order", [item["id"] for item in order])
     rows = []
     for spec in order:

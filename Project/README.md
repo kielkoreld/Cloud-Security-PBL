@@ -55,7 +55,11 @@ helm upgrade --install falco falcosecurity/falco \
 
 ```bash
 python3 Project/run_eval.py
+python3 Project/run_eval.py --21
+python3 Project/run_eval.py --7
 ```
+
+시드 기본값은 `21`이다. `--7`처럼 숫자를 넘기면 시나리오 섞는 순서만 바뀐다.
 
 15개 시나리오(제공 스크립트 4개 + 추가 시나리오)를 순서를 섞어 실행하고,
 Falco 로그로 판단한 뒤 오탐·미탐을 집계합니다.
