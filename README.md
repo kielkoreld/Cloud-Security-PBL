@@ -1,11 +1,16 @@
 # 실무클라우드보안 PBL Project
+
 **한국어** | [English](README_EN.md)
 
-| 실습 | 관찰 도구 | 정상 행위 | 비정상 행위 |
-| --- | --- | --- | --- |
-| Category 1 | Falco | 설정·임시 파일·health check | shadow·token 접근, 셸 실행 |
-| Category 2 | Hubble | 서비스 경로·DNS 통신 | 직접 접근·내부 탐색·비정상 포트 |
+
+| 실습         | 관찰 도구     | 정상 행위                    | 비정상 행위                |
+| ---------- | --------- | ------------------------ | --------------------- |
+| Category 1 | Falco     | 설정·임시 파일·health check    | shadow·token 접근, 셸 실행 |
+| Category 2 | Hubble    | 서비스 경로·DNS 통신            | 직접 접근·내부 탐색·비정상 포트    |
 | Category 3 | Audit Log | Pod·ConfigMap·Service 조회 | Secret·Pod exec·반복 조회 |
+
+
+## 과제 관련 내용은 `Project/README.md` 참조
 
 ## 1. 준비
 

@@ -1,3 +1,8 @@
 .generated/
 *.tmp
 .DS_Store
+__pycache__/
+*.pyc
+Project/results/.*.log
+Project/results/live*.jsonl
+Project/results/live*-progress.json

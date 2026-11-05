@@ -1,0 +1,1682 @@
+{
+  "order": [
+    "abnormal_2",
+    "normal",
+    "attack_cron_persist",
+    "benign_repeat",
+    "attack_shadow_read",
+    "attack_env_frontend",
+    "attack_ls_only",
+    "benign_tmp_tool",
+    "attack_token_head",
+    "abnormal_1",
+    "attack_payload_other_name",
+    "attack_host_recon",
+    "attack_inline_payload",
+    "abnormal_3",
+    "benign_debug_env"
+  ],
+  "verdict_false_positives": 0,
+  "verdict_false_negatives": 0,
+  "type_false_positives": 0,
+  "type_false_negatives": 0,
+  "scenarios": [
+    {
+      "id": "abnormal_2",
+      "truth_role": "attack",
+      "truth_types": [
+        "token_access"
+      ],
+      "note": "backend의 ServiceAccount 토큰 읽기",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 2,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "token_access"
+      ],
+      "evidence": [
+        "backend/cat reads /var/run/secrets/kubernetes.io/serviceaccount/token"
+      ],
+      "graph": {
+        "nodes": [
+          "container:backend",
+          "file:/var/run/secrets/kubernetes.io/serviceaccount/token",
+          "proc:backend/cat"
+        ],
+        "edges": [
+          {
+            "src": "proc:backend/cat",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:13:05.289946998Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "reads",
+            "dst": "file:/var/run/secrets/kubernetes.io/serviceaccount/token",
+            "time": "2026-10-22T15:13:05.290487487Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "token_read",
+          "attack_type": "token_access",
+          "container": "backend",
+          "process": "cat",
+          "file": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+          "time": "2026-10-22T15:13:05.290487487Z",
+          "reason": "프로세스가 ServiceAccount 토큰 파일을 열었고, 정상 실행의 그래프에는 그 엣지가 없다.",
+          "evidence": "backend/cat reads /var/run/secrets/kubernetes.io/serviceaccount/token"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "normal",
+      "truth_role": "benign",
+      "truth_types": [],
+      "note": "설정 읽기, /tmp 기록, health check",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 19,
+      "predicted_verdict": "benign",
+      "predicted_types": [],
+      "evidence": [],
+      "graph": {
+        "nodes": [
+          "container:curl-client",
+          "container:frontend",
+          "file:/etc/hostname",
+          "file:/tmp/openmetadata-health-response",
+          "file:/tmp/openmetadata-normal-session",
+          "file:/tmp/openmetadata-normal.tmp",
+          "file:/www/index.html",
+          "proc:curl-client/cat",
+          "proc:curl-client/curl",
+          "proc:curl-client/rm",
+          "proc:curl-client/runc",
+          "proc:curl-client/sh",
+          "proc:frontend/cat",
+          "proc:frontend/id",
+          "proc:frontend/rm",
+          "proc:frontend/runc",
+          "proc:frontend/sh",
+          "proc:frontend/uname"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:12.804443610Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/openmetadata-normal-session",
+            "time": "2026-10-22T15:13:12.805166253Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:12.805687035Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:13:12.805687035Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/etc/hostname",
+            "time": "2026-10-22T15:13:12.806289306Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/www/index.html",
+            "time": "2026-10-22T15:13:12.807436982Z"
+          },
+          {
+            "src": "proc:frontend/id",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:12.808086978Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/id",
+            "time": "2026-10-22T15:13:12.808086978Z"
+          },
+          {
+            "src": "proc:frontend/uname",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:12.809232045Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/uname",
+            "time": "2026-10-22T15:13:12.809232045Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:13:13.092297089Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/openmetadata-normal.tmp",
+            "time": "2026-10-22T15:13:13.092996947Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/tmp/openmetadata-normal.tmp",
+            "time": "2026-10-22T15:13:13.094039286Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:13.094611060Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:13:13.094611060Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:13.348078507Z"
+          },
+          {
+            "src": "proc:curl-client/runc",
+            "rel": "spawns",
+            "dst": "proc:curl-client/sh",
+            "time": "2026-10-22T15:13:13.348078507Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/openmetadata-health-response",
+            "time": "2026-10-22T15:13:13.348612133Z"
+          },
+          {
+            "src": "proc:curl-client/curl",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:13.349219024Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "spawns",
+            "dst": "proc:curl-client/curl",
+            "time": "2026-10-22T15:13:13.349219024Z"
+          },
+          {
+            "src": "proc:curl-client/cat",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:13.354705105Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "spawns",
+            "dst": "proc:curl-client/cat",
+            "time": "2026-10-22T15:13:13.354705105Z"
+          },
+          {
+            "src": "proc:curl-client/cat",
+            "rel": "reads",
+            "dst": "file:/tmp/openmetadata-health-response",
+            "time": "2026-10-22T15:13:13.354912510Z"
+          },
+          {
+            "src": "proc:curl-client/rm",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:13.355362690Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "spawns",
+            "dst": "proc:curl-client/rm",
+            "time": "2026-10-22T15:13:13.355362690Z"
+          }
+        ]
+      },
+      "alerts": [],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_cron_persist",
+      "truth_role": "attack",
+      "truth_types": [
+        "persistence"
+      ],
+      "note": "네트워크 없는 cron 등록 후 삭제",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 4,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "persistence"
+      ],
+      "evidence": [
+        "frontend/sh writes /etc/cron.d/pbl-marker"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/etc/cron.d/pbl-marker",
+          "proc:frontend/mkdir",
+          "proc:frontend/rm",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:19.804424715Z"
+          },
+          {
+            "src": "proc:frontend/mkdir",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:19.805514465Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/mkdir",
+            "time": "2026-10-22T15:13:19.805514465Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/etc/cron.d/pbl-marker",
+            "time": "2026-10-22T15:13:19.806196469Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:19.806738662Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:13:19.806738662Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "cron_write",
+          "attack_type": "persistence",
+          "container": "frontend",
+          "process": "sh",
+          "file": "/etc/cron.d/pbl-marker",
+          "time": "2026-10-22T15:13:19.806196469Z",
+          "reason": "프로세스가 cron 설정 경로에 기록을 남겼고, 정상 실행에는 예약 작업 등록이 없다.",
+          "evidence": "frontend/sh writes /etc/cron.d/pbl-marker"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "benign_repeat",
+      "truth_role": "benign",
+      "truth_types": [],
+      "note": "다른 이름의 임시 파일을 쓰고 읽기만 함",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 13,
+      "predicted_verdict": "benign",
+      "predicted_types": [],
+      "evidence": [],
+      "graph": {
+        "nodes": [
+          "container:curl-client",
+          "container:frontend",
+          "file:/etc/hostname",
+          "file:/tmp/pbl-benign-health",
+          "file:/tmp/pbl-benign-note",
+          "file:/www/index.html",
+          "proc:curl-client/curl",
+          "proc:curl-client/rm",
+          "proc:curl-client/sh",
+          "proc:frontend/cat",
+          "proc:frontend/rm",
+          "proc:frontend/runc",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:26.248345124Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:13:26.248345124Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:26.249453742Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:13:26.249453742Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/etc/hostname",
+            "time": "2026-10-22T15:13:26.249987848Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/www/index.html",
+            "time": "2026-10-22T15:13:26.251250132Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/pbl-benign-note",
+            "time": "2026-10-22T15:13:26.251473818Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/tmp/pbl-benign-note",
+            "time": "2026-10-22T15:13:26.253077888Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:26.253768998Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:13:26.253768998Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:26.471879723Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/pbl-benign-health",
+            "time": "2026-10-22T15:13:26.472208144Z"
+          },
+          {
+            "src": "proc:curl-client/curl",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:26.472589936Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "spawns",
+            "dst": "proc:curl-client/curl",
+            "time": "2026-10-22T15:13:26.472589936Z"
+          },
+          {
+            "src": "proc:curl-client/rm",
+            "rel": "runs_in",
+            "dst": "container:curl-client",
+            "time": "2026-10-22T15:13:26.477773217Z"
+          },
+          {
+            "src": "proc:curl-client/sh",
+            "rel": "spawns",
+            "dst": "proc:curl-client/rm",
+            "time": "2026-10-22T15:13:26.477773217Z"
+          }
+        ]
+      },
+      "alerts": [],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_shadow_read",
+      "truth_role": "attack",
+      "truth_types": [
+        "credential_access"
+      ],
+      "note": "컨테이너 /etc/shadow 읽기",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 3,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "credential_access"
+      ],
+      "evidence": [
+        "backend/sh stats /etc/shadow",
+        "backend/cat stats /etc/shadow"
+      ],
+      "graph": {
+        "nodes": [
+          "container:backend",
+          "file:/etc/shadow",
+          "proc:backend/cat",
+          "proc:backend/runc",
+          "proc:backend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:backend/sh",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:13:32.968524444Z"
+          },
+          {
+            "src": "proc:backend/runc",
+            "rel": "spawns",
+            "dst": "proc:backend/sh",
+            "time": "2026-10-22T15:13:32.968524444Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:13:32.968524444Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:13:32.969418653Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:13:32.969418653Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "reads",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:13:32.969883599Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:13:32.968524444Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /etc/shadow"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "cat",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:13:32.969418653Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/cat stats /etc/shadow"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_env_frontend",
+      "truth_role": "attack",
+      "truth_types": [
+        "environment_discovery"
+      ],
+      "note": "frontend에서 env와 /proc/self/environ",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 4,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "environment_discovery"
+      ],
+      "evidence": [
+        "frontend/sh spawns env",
+        "frontend/cat reads /proc/self/environ"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/proc/self/environ",
+          "proc:frontend/cat",
+          "proc:frontend/env",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:39.448305777Z"
+          },
+          {
+            "src": "proc:frontend/env",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:39.449635592Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/env",
+            "time": "2026-10-22T15:13:39.449635592Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:39.450694636Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/proc/self/environ",
+            "time": "2026-10-22T15:13:39.451190826Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "env_dump",
+          "attack_type": "environment_discovery",
+          "container": "frontend",
+          "process": "env",
+          "file": "env",
+          "time": "2026-10-22T15:13:39.449635592Z",
+          "reason": "환경변수 출력과 다른 공격 경로가 같은 컨테이너에 같이 있다.",
+          "evidence": "frontend/sh spawns env"
+        },
+        {
+          "motive": "environ_read",
+          "attack_type": "environment_discovery",
+          "container": "frontend",
+          "process": "cat",
+          "file": "/proc/self/environ",
+          "time": "2026-10-22T15:13:39.451190826Z",
+          "reason": "프로세스가 /proc 환경 파일을 읽었고, 정상 실행의 그래프에는 그 엣지가 없다.",
+          "evidence": "frontend/cat reads /proc/self/environ"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_ls_only",
+      "truth_role": "attack",
+      "truth_types": [
+        "credential_access"
+      ],
+      "note": "자격증명 경로의 존재만 확인",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 2,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "credential_access"
+      ],
+      "evidence": [
+        "backend/sh stats /root/.aws/credentials",
+        "backend/sh stats /root/.ssh/id_rsa",
+        "backend/sh stats /root/.kube/config",
+        "backend/sh stats /etc/shadow",
+        "backend/ls stats /etc/shadow"
+      ],
+      "graph": {
+        "nodes": [
+          "container:backend",
+          "file:/etc/shadow",
+          "file:/root/.aws/credentials",
+          "file:/root/.kube/config",
+          "file:/root/.ssh/id_rsa",
+          "proc:backend/ls",
+          "proc:backend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:backend/sh",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:13:45.880231800Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.aws/credentials",
+            "time": "2026-10-22T15:13:45.880231800Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.ssh/id_rsa",
+            "time": "2026-10-22T15:13:45.880231800Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.kube/config",
+            "time": "2026-10-22T15:13:45.880231800Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:13:45.880231800Z"
+          },
+          {
+            "src": "proc:backend/ls",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:13:45.881697876Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "spawns",
+            "dst": "proc:backend/ls",
+            "time": "2026-10-22T15:13:45.881697876Z"
+          },
+          {
+            "src": "proc:backend/ls",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:13:45.881697876Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.aws/credentials",
+          "time": "2026-10-22T15:13:45.880231800Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.aws/credentials"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.ssh/id_rsa",
+          "time": "2026-10-22T15:13:45.880231800Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.ssh/id_rsa"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.kube/config",
+          "time": "2026-10-22T15:13:45.880231800Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.kube/config"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:13:45.880231800Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /etc/shadow"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "ls",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:13:45.881697876Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/ls stats /etc/shadow"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "benign_tmp_tool",
+      "truth_role": "benign",
+      "truth_types": [],
+      "note": "로컬 점검 스크립트를 /tmp에 쓰고 실행",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 7,
+      "predicted_verdict": "benign",
+      "predicted_types": [],
+      "evidence": [],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/tmp/pbl-health.sh",
+          "proc:frontend/cat",
+          "proc:frontend/chmod",
+          "proc:frontend/rm",
+          "proc:frontend/runc",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:52.375970313Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:13:52.375970313Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/pbl-health.sh",
+            "time": "2026-10-22T15:13:52.376653406Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:52.377190691Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:13:52.377190691Z"
+          },
+          {
+            "src": "proc:frontend/chmod",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:52.378277756Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/chmod",
+            "time": "2026-10-22T15:13:52.378277756Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:13:52.379370506Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "execs",
+            "dst": "file:/tmp/pbl-health.sh",
+            "time": "2026-10-22T15:13:52.379370506Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "reads",
+            "dst": "file:/tmp/pbl-health.sh",
+            "time": "2026-10-22T15:13:52.380114694Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:52.380743072Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:13:52.380743072Z"
+          }
+        ]
+      },
+      "alerts": [],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_token_head",
+      "truth_role": "attack",
+      "truth_types": [
+        "token_access"
+      ],
+      "note": "frontend에서 head로 토큰 1바이트만 읽기",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 3,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "token_access"
+      ],
+      "evidence": [
+        "frontend/head reads /var/run/secrets/kubernetes.io/serviceaccount/token"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/var/run/secrets/kubernetes.io/serviceaccount/token",
+          "proc:frontend/head",
+          "proc:frontend/runc",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:58.863951714Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:13:58.863951714Z"
+          },
+          {
+            "src": "proc:frontend/head",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:13:58.864863370Z"
+          },
+          {
+            "src": "proc:frontend/head",
+            "rel": "reads",
+            "dst": "file:/var/run/secrets/kubernetes.io/serviceaccount/token",
+            "time": "2026-10-22T15:13:58.865460446Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "token_read",
+          "attack_type": "token_access",
+          "container": "frontend",
+          "process": "head",
+          "file": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+          "time": "2026-10-22T15:13:58.865460446Z",
+          "reason": "프로세스가 ServiceAccount 토큰 파일을 열었고, 정상 실행의 그래프에는 그 엣지가 없다.",
+          "evidence": "frontend/head reads /var/run/secrets/kubernetes.io/serviceaccount/token"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "abnormal_1",
+      "truth_role": "attack",
+      "truth_types": [
+        "credential_access",
+        "environment_discovery"
+      ],
+      "note": "환경변수 출력, environ 읽기, 자격증명 경로 확인",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 7,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "credential_access",
+        "environment_discovery"
+      ],
+      "evidence": [
+        "backend/sh stats /root/.aws/credentials",
+        "backend/sh stats /root/.ssh/id_rsa",
+        "backend/sh stats /root/.kube/config",
+        "backend/sh stats /etc/shadow",
+        "backend/sh spawns env",
+        "backend/cat reads /proc/1/environ",
+        "backend/ls stats /etc/shadow"
+      ],
+      "graph": {
+        "nodes": [
+          "container:backend",
+          "file:/etc/shadow",
+          "file:/proc/1/environ",
+          "file:/root/.aws/credentials",
+          "file:/root/.kube/config",
+          "file:/root/.ssh/id_rsa",
+          "file:/tmp/openmetadata-env-snapshot",
+          "proc:backend/cat",
+          "proc:backend/env",
+          "proc:backend/ls",
+          "proc:backend/rm",
+          "proc:backend/runc",
+          "proc:backend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:backend/sh",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/runc",
+            "rel": "spawns",
+            "dst": "proc:backend/sh",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.aws/credentials",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.ssh/id_rsa",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/root/.kube/config",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:14:05.388121413Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/openmetadata-env-snapshot",
+            "time": "2026-10-22T15:14:06.389134040Z"
+          },
+          {
+            "src": "proc:backend/env",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:14:06.389734575Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "spawns",
+            "dst": "proc:backend/env",
+            "time": "2026-10-22T15:14:06.389734575Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:14:06.391448908Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "spawns",
+            "dst": "proc:backend/cat",
+            "time": "2026-10-22T15:14:06.391448908Z"
+          },
+          {
+            "src": "proc:backend/cat",
+            "rel": "reads",
+            "dst": "file:/proc/1/environ",
+            "time": "2026-10-22T15:14:06.391961003Z"
+          },
+          {
+            "src": "proc:backend/ls",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:14:06.392753126Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "spawns",
+            "dst": "proc:backend/ls",
+            "time": "2026-10-22T15:14:06.392753126Z"
+          },
+          {
+            "src": "proc:backend/ls",
+            "rel": "stats",
+            "dst": "file:/etc/shadow",
+            "time": "2026-10-22T15:14:06.392753126Z"
+          },
+          {
+            "src": "proc:backend/rm",
+            "rel": "runs_in",
+            "dst": "container:backend",
+            "time": "2026-10-22T15:14:06.394316473Z"
+          },
+          {
+            "src": "proc:backend/sh",
+            "rel": "spawns",
+            "dst": "proc:backend/rm",
+            "time": "2026-10-22T15:14:06.394316473Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.aws/credentials",
+          "time": "2026-10-22T15:14:05.388121413Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.aws/credentials"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.ssh/id_rsa",
+          "time": "2026-10-22T15:14:05.388121413Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.ssh/id_rsa"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/root/.kube/config",
+          "time": "2026-10-22T15:14:05.388121413Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /root/.kube/config"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "sh",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:14:05.388121413Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/sh stats /etc/shadow"
+        },
+        {
+          "motive": "env_dump",
+          "attack_type": "environment_discovery",
+          "container": "backend",
+          "process": "env",
+          "file": "env",
+          "time": "2026-10-22T15:14:06.389734575Z",
+          "reason": "환경변수 출력과 다른 공격 경로가 같은 컨테이너에 같이 있다.",
+          "evidence": "backend/sh spawns env"
+        },
+        {
+          "motive": "environ_read",
+          "attack_type": "environment_discovery",
+          "container": "backend",
+          "process": "cat",
+          "file": "/proc/1/environ",
+          "time": "2026-10-22T15:14:06.391961003Z",
+          "reason": "프로세스가 /proc 환경 파일을 읽었고, 정상 실행의 그래프에는 그 엣지가 없다.",
+          "evidence": "backend/cat reads /proc/1/environ"
+        },
+        {
+          "motive": "credential_read",
+          "attack_type": "credential_access",
+          "container": "backend",
+          "process": "ls",
+          "file": "/etc/shadow",
+          "time": "2026-10-22T15:14:06.392753126Z",
+          "reason": "프로세스가 shadow 또는 홈 디렉터리 자격증명 경로를 열거나 상태만 확인했다.",
+          "evidence": "backend/ls stats /etc/shadow"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_payload_other_name",
+      "truth_role": "attack",
+      "truth_types": [
+        "payload_execution"
+      ],
+      "note": "다른 이름의 /tmp 스크립트 작성 후 실행",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 7,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "payload_execution"
+      ],
+      "evidence": [
+        "write /tmp/pbl-marker.sh at 2026-10-22T15:14:13.872981591Z -> frontend/sh execs /tmp/pbl-marker.sh"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/tmp/pbl-marker.sh",
+          "proc:frontend/cat",
+          "proc:frontend/chmod",
+          "proc:frontend/rm",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:13.872287654Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/pbl-marker.sh",
+            "time": "2026-10-22T15:14:13.872981591Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:13.873459564Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:14:13.873459564Z"
+          },
+          {
+            "src": "proc:frontend/chmod",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:13.874547591Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/chmod",
+            "time": "2026-10-22T15:14:13.874547591Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:14:13.875571190Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "execs",
+            "dst": "file:/tmp/pbl-marker.sh",
+            "time": "2026-10-22T15:14:13.875571190Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "reads",
+            "dst": "file:/tmp/pbl-marker.sh",
+            "time": "2026-10-22T15:14:13.876084146Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:13.876729381Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:14:13.876729381Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "tmp_exec",
+          "attack_type": "payload_execution",
+          "container": "frontend",
+          "process": "sh",
+          "file": "/tmp/pbl-marker.sh",
+          "time": "2026-10-22T15:14:13.875571190Z",
+          "reason": "/tmp에 쓴 파일을 셸이 경로로 실행했거나, 그 파일을 읽은 뒤 새 셸이 시작했다.",
+          "evidence": "write /tmp/pbl-marker.sh at 2026-10-22T15:14:13.872981591Z -> frontend/sh execs /tmp/pbl-marker.sh"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_host_recon",
+      "truth_role": "attack",
+      "truth_types": [
+        "host_discovery"
+      ],
+      "note": "커널 버전과 CPU 정보 읽기",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 5,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "host_discovery"
+      ],
+      "evidence": [
+        "frontend/cat reads /proc/version",
+        "frontend/cat reads /proc/cpuinfo"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/proc/cpuinfo",
+          "file:/proc/version",
+          "proc:frontend/cat",
+          "proc:frontend/runc",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:20.396003916Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:14:20.396003916Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:20.397164568Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:14:20.397164568Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/proc/version",
+            "time": "2026-10-22T15:14:20.397963090Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/proc/cpuinfo",
+            "time": "2026-10-22T15:14:20.399200651Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "host_recon",
+          "attack_type": "host_discovery",
+          "container": "frontend",
+          "process": "cat",
+          "file": "/proc/version",
+          "time": "2026-10-22T15:14:20.397963090Z",
+          "reason": "프로세스가 커널 버전이나 CPU 정보를 읽었고, 정상 실행의 id·uname은 그 파일을 열지 않는다.",
+          "evidence": "frontend/cat reads /proc/version"
+        },
+        {
+          "motive": "host_recon",
+          "attack_type": "host_discovery",
+          "container": "frontend",
+          "process": "cat",
+          "file": "/proc/cpuinfo",
+          "time": "2026-10-22T15:14:20.399200651Z",
+          "reason": "프로세스가 커널 버전이나 CPU 정보를 읽었고, 정상 실행의 id·uname은 그 파일을 열지 않는다.",
+          "evidence": "frontend/cat reads /proc/cpuinfo"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "attack_inline_payload",
+      "truth_role": "attack",
+      "truth_types": [
+        "payload_execution"
+      ],
+      "note": "파일 내용을 셸 문자열로 실행하고 경로는 직접 실행하지 않음",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 7,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "payload_execution"
+      ],
+      "evidence": [
+        "read /tmp/pbl-inline.sh at 2026-10-22T15:14:26.803017581Z -> frontend/sh starts at 2026-10-22T15:14:26.803570320Z"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/tmp/pbl-inline.sh",
+          "proc:frontend/cat",
+          "proc:frontend/rm",
+          "proc:frontend/runc",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:26.800027773Z"
+          },
+          {
+            "src": "proc:frontend/runc",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:14:26.800027773Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/pbl-inline.sh",
+            "time": "2026-10-22T15:14:26.800703785Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:26.801253837Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:14:26.801253837Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "reads",
+            "dst": "file:/tmp/pbl-inline.sh",
+            "time": "2026-10-22T15:14:26.803017581Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:14:26.803570320Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:26.804611235Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:14:26.804611235Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "follows",
+            "dst": "file:/tmp/pbl-inline.sh",
+            "time": "2026-10-22T15:14:26.803570320Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "tmp_exec",
+          "attack_type": "payload_execution",
+          "container": "frontend",
+          "process": "sh",
+          "file": "/tmp/pbl-inline.sh",
+          "time": "2026-10-22T15:14:26.803570320Z",
+          "reason": "/tmp에 쓴 파일을 셸이 경로로 실행했거나, 그 파일을 읽은 뒤 새 셸이 시작했다.",
+          "evidence": "read /tmp/pbl-inline.sh at 2026-10-22T15:14:26.803017581Z -> frontend/sh starts at 2026-10-22T15:14:26.803570320Z"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "abnormal_3",
+      "truth_role": "attack",
+      "truth_types": [
+        "payload_execution"
+      ],
+      "note": "/tmp 스크립트를 쓴 뒤 sh로 실행",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 9,
+      "predicted_verdict": "attack",
+      "predicted_types": [
+        "payload_execution"
+      ],
+      "evidence": [
+        "write /tmp/openmetadata-payload.sh at 2026-10-22T15:14:33.245102226Z -> frontend/sh execs /tmp/openmetadata-payload.sh"
+      ],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "file:/tmp/openmetadata-payload.sh",
+          "proc:frontend/cat",
+          "proc:frontend/chmod",
+          "proc:frontend/id",
+          "proc:frontend/rm",
+          "proc:frontend/sh",
+          "proc:frontend/uname"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:33.244273942Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "writes",
+            "dst": "file:/tmp/openmetadata-payload.sh",
+            "time": "2026-10-22T15:14:33.245102226Z"
+          },
+          {
+            "src": "proc:frontend/cat",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:33.245599258Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/cat",
+            "time": "2026-10-22T15:14:33.245599258Z"
+          },
+          {
+            "src": "proc:frontend/chmod",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:33.246701716Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/chmod",
+            "time": "2026-10-22T15:14:33.246701716Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/sh",
+            "time": "2026-10-22T15:14:33.247770889Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "execs",
+            "dst": "file:/tmp/openmetadata-payload.sh",
+            "time": "2026-10-22T15:14:33.247770889Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "reads",
+            "dst": "file:/tmp/openmetadata-payload.sh",
+            "time": "2026-10-22T15:14:33.248338836Z"
+          },
+          {
+            "src": "proc:frontend/id",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:33.249207437Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/id",
+            "time": "2026-10-22T15:14:33.249207437Z"
+          },
+          {
+            "src": "proc:frontend/uname",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:33.250518743Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/uname",
+            "time": "2026-10-22T15:14:33.250518743Z"
+          },
+          {
+            "src": "proc:frontend/rm",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:34.252322556Z"
+          },
+          {
+            "src": "proc:frontend/sh",
+            "rel": "spawns",
+            "dst": "proc:frontend/rm",
+            "time": "2026-10-22T15:14:34.252322556Z"
+          }
+        ]
+      },
+      "alerts": [
+        {
+          "motive": "tmp_exec",
+          "attack_type": "payload_execution",
+          "container": "frontend",
+          "process": "sh",
+          "file": "/tmp/openmetadata-payload.sh",
+          "time": "2026-10-22T15:14:33.247770889Z",
+          "reason": "/tmp에 쓴 파일을 셸이 경로로 실행했거나, 그 파일을 읽은 뒤 새 셸이 시작했다.",
+          "evidence": "write /tmp/openmetadata-payload.sh at 2026-10-22T15:14:33.245102226Z -> frontend/sh execs /tmp/openmetadata-payload.sh"
+        }
+      ],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    },
+    {
+      "id": "benign_debug_env",
+      "truth_role": "benign",
+      "truth_types": [],
+      "note": "운영 확인으로 환경변수만 출력",
+      "script_exit": 0,
+      "script_stderr": "",
+      "event_count": 2,
+      "predicted_verdict": "benign",
+      "predicted_types": [],
+      "evidence": [],
+      "graph": {
+        "nodes": [
+          "container:frontend",
+          "proc:frontend/env",
+          "proc:frontend/sh"
+        ],
+        "edges": [
+          {
+            "src": "proc:frontend/sh",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:40.704262700Z"
+          },
+          {
+            "src": "proc:frontend/env",
+            "rel": "runs_in",
+            "dst": "container:frontend",
+            "time": "2026-10-22T15:14:40.705109185Z"
+          }
+        ]
+      },
+      "alerts": [],
+      "verdict_false_positive": false,
+      "verdict_false_negative": false,
+      "type_false_positives": [],
+      "type_false_negatives": []
+    }
+  ]
+}

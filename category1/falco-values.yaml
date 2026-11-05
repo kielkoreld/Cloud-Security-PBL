@@ -1,79 +1,108 @@
+# Telemetry only. These rules record file opens and process starts.
+# They do not assign normal or attack labels. Project/detect_graph.py does that.
 customRules:
   pbl_rules.yaml: |-
-    - rule: PBL Normal Configuration Read
-      desc: Expected application configuration read
+    - rule: PBL File Read
+      desc: Record reads of workload, temporary, environment, and credential paths
       condition: >
-        container and evt.type in (open, openat, openat2) and
-        proc.name = cat and fd.name in (/etc/hostname, /www/index.html) and
-        container.name = frontend
+        container and k8s.ns.name = "pbl-security" and
+        container.name in (frontend, backend, curl-client) and
+        evt.type in (open, openat, openat2) and evt.is_open_read = true and
+        (
+          fd.name startswith "/tmp/" or
+          fd.name startswith "/www/" or
+          fd.name = "/etc/hostname" or
+          fd.name = "/etc/shadow" or
+          fd.name startswith "/root/.aws/" or
+          fd.name startswith "/root/.ssh/" or
+          fd.name startswith "/root/.kube/" or
+          fd.name contains "/environ" or
+          fd.name contains "/serviceaccount/token" or
+          fd.name = "/proc/version" or
+          fd.name = "/proc/cpuinfo"
+        )
       output: >
-        PBL_EVENT scenario=normal case=openmetadata action=config_read
-        file=%fd.name process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
+        PBL_EVENT kind=file_open mode=read file=%fd.name process=%proc.name
+        parent=%proc.pname args=%proc.args command=%proc.cmdline
+        exepath=%proc.exepath container=%container.name container_id=%container.id
+        pod=%k8s.pod.name namespace=%k8s.ns.name
       priority: Informational
-      tags: [pbl, normal, openmetadata]
+      tags: [pbl, telemetry]
 
-    - rule: PBL Normal Temporary File Activity
-      desc: Expected temporary file write by an administrator
+    - rule: PBL File Write
+      desc: Record writes of workload and temporary paths
       condition: >
-        container and evt.type in (open, openat, openat2) and
-        evt.is_open_write=true and fd.name startswith /tmp/openmetadata-normal and
-        container.name = frontend
+        container and k8s.ns.name = "pbl-security" and
+        container.name in (frontend, backend, curl-client) and
+        evt.type in (open, openat, openat2) and evt.is_open_write = true and
+        (
+          fd.name startswith "/tmp/" or
+          fd.name startswith "/www/" or
+          fd.name = "/etc/hostname" or
+          fd.name = "/etc/shadow" or
+          fd.name startswith "/root/.aws/" or
+          fd.name startswith "/root/.ssh/" or
+          fd.name startswith "/root/.kube/" or
+          fd.name contains "/environ" or
+          fd.name contains "/serviceaccount/token" or
+          fd.name startswith "/etc/cron.d/" or
+          fd.name startswith "/etc/crontabs/" or
+          fd.name startswith "/var/spool/cron/" or
+          fd.name = "/etc/crontab"
+        )
       output: >
-        PBL_EVENT scenario=normal case=openmetadata action=temp_file_write
-        file=%fd.name process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
+        PBL_EVENT kind=file_open mode=write file=%fd.name process=%proc.name
+        parent=%proc.pname args=%proc.args command=%proc.cmdline
+        exepath=%proc.exepath container=%container.name container_id=%container.id
+        pod=%k8s.pod.name namespace=%k8s.ns.name
       priority: Informational
-      tags: [pbl, normal, openmetadata]
+      tags: [pbl, telemetry]
 
-    - rule: PBL Normal Curl Health Check
-      desc: Expected curl health check from the frontend Pod
+    - rule: PBL Path Stat
+      desc: Record stat and access checks of credential paths
       condition: >
-        container and evt.type in (open, openat, openat2) and
-        evt.is_open_write=true and
-        fd.name = /tmp/openmetadata-health-response
+        container and k8s.ns.name = "pbl-security" and
+        container.name in (frontend, backend, curl-client) and
+        evt.type in (stat, lstat, fstat, newfstatat, statx, faccessat, faccessat2) and
+        (
+          fs.path.name = "/etc/shadow" or
+          fs.path.name startswith "/root/.aws/" or
+          fs.path.name startswith "/root/.ssh/" or
+          fs.path.name startswith "/root/.kube/"
+        )
       output: >
-        PBL_EVENT scenario=normal case=openmetadata action=health_check
-        file=%fd.name process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
+        PBL_EVENT kind=path_stat mode=stat file=%fs.path.name process=%proc.name
+        parent=%proc.pname args=%proc.args command=%proc.cmdline
+        exepath=%proc.exepath container=%container.name container_id=%container.id
+        pod=%k8s.pod.name namespace=%k8s.ns.name
       priority: Informational
-      tags: [pbl, normal, openmetadata]
+      tags: [pbl, telemetry]
 
-    - rule: PBL OpenMetadata Environment Discovery
-      desc: Environment and credential discovery after a simulated OpenMetadata compromise
+    - rule: PBL Script Bytes
+      desc: Record bytes written to temporary files so a health check can be told from other scripts
       condition: >
-        container and spawned_process and
-        (proc.name = env or (proc.name = cat and proc.args contains /proc/1/environ)) and
-        container.name = backend
+        container and k8s.ns.name = "pbl-security" and
+        container.name in (frontend, backend, curl-client) and
+        evt.type in (write, pwrite, pwrite64, writev) and
+        fd.name startswith "/tmp/"
       output: >
-        PBL_EVENT scenario=abnormal_1 case=openmetadata action=credential_environment_discovery
-        file=<NA> process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
-      priority: Warning
-      tags: [pbl, abnormal, openmetadata, discovery]
+        PBL_EVENT kind=script_write mode=bytes file=%fd.name data=%evt.buffer
+        process=%proc.name parent=%proc.pname args=%proc.args command=%proc.cmdline
+        exepath=%proc.exepath container=%container.name container_id=%container.id
+        pod=%k8s.pod.name namespace=%k8s.ns.name
+      priority: Informational
+      tags: [pbl, telemetry]
 
-    - rule: PBL OpenMetadata ServiceAccount Token Access
-      desc: ServiceAccount token access after a simulated OpenMetadata compromise
+    - rule: PBL Process Spawn
+      desc: Record new processes in the PBL workload containers
       condition: >
-        container and evt.type in (open, openat, openat2) and
-        proc.name = cat and fd.name contains kubernetes.io/serviceaccount and
-        fd.name endswith token and container.name = backend
+        container and spawned_process and k8s.ns.name = "pbl-security" and
+        container.name in (frontend, backend, curl-client) and
+        not proc.name in (httpd, sleep)
       output: >
-        PBL_EVENT scenario=abnormal_2 case=openmetadata action=serviceaccount_token_read
-        file=%fd.name process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
-      priority: Warning
-      tags: [pbl, abnormal, openmetadata, credential_access]
-
-    - rule: PBL OpenMetadata Payload Execution
-      desc: Safe local payload execution that represents shell or payload execution
-      condition: >
-        container and spawned_process and proc.name = sh and
-        proc.args contains /tmp/openmetadata-payload.sh and
-        container.name = frontend
-      output: >
-        PBL_EVENT scenario=abnormal_3 case=openmetadata action=payload_shell_exec
-        file=/tmp/openmetadata-payload.sh process=%proc.name command=%proc.cmdline
-        container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name
-      priority: Warning
-      tags: [pbl, abnormal, openmetadata, execution]
+        PBL_EVENT kind=process_spawn mode=spawn file=%proc.exepath process=%proc.name
+        parent=%proc.pname args=%proc.args command=%proc.cmdline
+        exepath=%proc.exepath container=%container.name container_id=%container.id
+        pod=%k8s.pod.name namespace=%k8s.ns.name
+      priority: Informational
+      tags: [pbl, telemetry]
